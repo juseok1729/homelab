@@ -1,4 +1,14 @@
-# Phase1
+# Homelab
+<!-- toc -->
+
+- [Installation](#installation)
+  - [Phase1](#phase1)
+
+<!-- tocstop -->
+
+
+## Installation
+### Phase1
 0. 위 파일 clone 후  
 1. terraform.tfvars 만들고 실제 토큰 secret 주입  
     ```bash
@@ -30,7 +40,7 @@
 
 5. Plan
     ```bash
-    terraform plan -out=phase2.tfplan
+    terraform plan -out=phase1.tfplan
     # 출력 검토:
     #   + proxmox_virtual_environment_vm.vyos_rtr_1
     #   1 to add, 0 to change, 0 to destroy
@@ -40,3 +50,4 @@
     ```bash
     terraform apply phase2.tfplan
     ```
+

@@ -48,6 +48,6 @@
 
 6. Apply
     ```bash
-    terraform apply phase2.tfplan
+    terraform apply phase1.tfplan
     ```
 

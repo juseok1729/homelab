@@ -1,5 +1,3 @@
-cd ~/Projects/homelab/homelab-iac
-
 # Phase1
 0. 위 파일 모두 생성 후  
 1. terraform.tfvars 만들고 실제 토큰 secret 주입  

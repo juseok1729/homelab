@@ -1,0 +1,2 @@
+# Copy to terraform.tfvars and fill in your values
+pve_api_token = "terraform@pve!provisioner=your-secret-here"

@@ -1,0 +1,23 @@
+# Terraform state
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Secrets
+*.tfvars
+!*.tfvars.example
+
+# Terraform internals
+.terraform/
+.terraform.lock.hcl
+
+# Plan files
+*.tfplan
+
+# Crash logs
+crash.log
+crash.*.log
+
+# OS
+.DS_Store
+Thumbs.db

@@ -80,3 +80,38 @@ resource "proxmox_virtual_environment_vm" "vyos_rtr_1" {
 # bpg/proxmox provider는 VM 생성 직후 ipv4_addresses를 자동으로 채움
 # (agent.enabled=true 때문)
 # 우리는 이를 outputs.tf에서 노출만 하면 됨
+
+
+# Phase2
+# ─────────────────────────────────────────────────────────────
+# vyos-rtr-1 — Production config injection
+# ─────────────────────────────────────────────────────────────
+resource "null_resource" "vyos_rtr_1_provision" {
+  depends_on = [proxmox_virtual_environment_vm.vyos_rtr_1]
+
+  triggers = {
+    config_version = var.vyos_rtr_1_config_version
+    vm_id          = proxmox_virtual_environment_vm.vyos_rtr_1.vm_id
+  }
+
+  connection {
+    type     = "ssh"
+    host     = local.vyos_rtr_1_ip
+    user     = var.vyos_default_user
+    password = var.vyos_default_password
+    timeout  = "5m"
+  }
+
+  # Wait for SSH
+  provisioner "remote-exec" {
+    inline = ["echo SSH ready"]
+  }
+
+  # Inject config via vbash
+  # 핵심: heredoc을 vbash에 stdin으로 전달
+  provisioner "remote-exec" {
+    inline = [
+      "vbash <<'VYOS_EOF'\n${local.vyos_rtr_1_config_script}\nVYOS_EOF",
+    ]
+  }
+}

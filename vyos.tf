@@ -102,16 +102,104 @@ resource "null_resource" "vyos_rtr_1_provision" {
     timeout  = "5m"
   }
 
-  # Wait for SSH
   provisioner "remote-exec" {
     inline = ["echo SSH ready"]
   }
 
-  # Inject config via vbash
-  # 핵심: heredoc을 vbash에 stdin으로 전달
   provisioner "remote-exec" {
     inline = [
       "vbash <<'VYOS_EOF'\n${local.vyos_rtr_1_config_script}\nVYOS_EOF",
+    ]
+  }
+}
+
+# ─────────────────────────────────────────────────────────
+# vyos-rtr-2 VM (신규)
+# ─────────────────────────────────────────────────────────
+resource "proxmox_virtual_environment_vm" "vyos_rtr_2" {
+  name        = var.vyos_rtr_2_name
+  vm_id       = var.vyos_rtr_2_vm_id
+  node_name   = var.vyos_rtr_2_node
+  description = "VyOS HA router (backup) - managed by Terraform"
+  tags        = local.vm_tags_router
+
+  clone {
+    vm_id = var.vyos_template_id
+    full  = true
+
+    # Template이 node1에 있는데 node2로 clone할 때 disk migration 필요
+    node_name = "pve-node1"
+  }
+
+  cpu {
+    cores = var.vyos_rtr_2_cores
+    type  = "host"
+  }
+
+  memory {
+    dedicated = var.vyos_rtr_2_memory
+  }
+
+  disk {
+    datastore_id = local.datastore
+    interface    = "scsi0"
+    size         = var.vyos_rtr_2_disk_size
+    file_format  = "raw"
+  }
+
+  network_device {
+    bridge = "vmbr0"
+    model  = "virtio"
+  }
+
+  agent {
+    enabled = true
+    timeout = "5m"
+  }
+
+  serial_device {
+    device = "socket"
+  }
+
+  boot_order = ["scsi0"]
+
+  operating_system {
+    type = "l26"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      network_device,
+    ]
+  }
+}
+
+# ─────────────────────────────────────────────────────────
+# vyos-rtr-2 provision
+# ─────────────────────────────────────────────────────────
+resource "null_resource" "vyos_rtr_2_provision" {
+  depends_on = [proxmox_virtual_environment_vm.vyos_rtr_2]
+
+  triggers = {
+    config_version = var.vyos_rtr_2_config_version
+    vm_id          = proxmox_virtual_environment_vm.vyos_rtr_2.vm_id
+  }
+
+  connection {
+    type     = "ssh"
+    host     = local.vyos_rtr_2_ip
+    user     = var.vyos_default_user
+    password = var.vyos_default_password
+    timeout  = "5m"
+  }
+
+  provisioner "remote-exec" {
+    inline = ["echo SSH ready"]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "vbash <<'VYOS_EOF'\n${local.vyos_rtr_2_config_script}\nVYOS_EOF",
     ]
   }
 }

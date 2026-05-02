@@ -3,6 +3,8 @@
 
 - [Installation](#installation)
   - [Phase1](#phase1)
+  - [Phase2](#phase2)
+  - [Phase3](#phase3)
 
 <!-- tocstop -->
 
@@ -148,11 +150,15 @@ vyos@vyos-rtr-1:~$ show configuration commands | grep -E "host-name|vif|nat|fire
 ```
 
 3. 체크
-```
-✅ Hostname: vyos-rtr-1
-✅ vlan10/20/30 sub-interfaces (.252 IPs, descriptions)
-✅ NAT rules 100/110/120 (vlan10/20/30 → eth0 masquerade)
-✅ Firewall state-policy (set 명령 정상 박힘)
-✅ Routing: connected vlan10/20/30 + static default
-✅ External SSH 여전히 가능 (vlan1 DHCP IP 유지 — 디버깅 fallback)
-```
+- [x] Hostname: vyos-rtr-1
+- [x] vlan10/20/30 sub-interfaces (.252 IPs, descriptions)
+- [x] NAT rules 100/110/120 (vlan10/20/30 → eth0 masquerade)
+- [x] Firewall state-policy (set 명령 정상 박힘)
+- [x] Routing: connected vlan10/20/30 + static default
+- [x] External SSH 여전히 가능 (vlan1 DHCP IP 유지 — 디버깅 fallback)
+
+### Phase3
+- [x] Master/Backup 정확히 분리 (priority 200 > 100)
+- [x] VRID matching (rtr-1과 rtr-2의 VRID 10/20/30이 정확히 매칭 → 같은 VRRP group으로 인식)
+- [x] Last Transition이 1분대 — 가장 최근 apply에서 시작됐다는 증거
+- [x] Sync-group ALL 동작 중 (3 group 모두 동일 상태)

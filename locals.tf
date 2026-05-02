@@ -34,24 +34,18 @@ locals {
       set high-availability vrrp group vrrp-vlan10 priority '${role == "master" ? var.vrrp_priority_master : var.vrrp_priority_backup}'
       set high-availability vrrp group vrrp-vlan10 advertise-interval '${var.vrrp_advertise_interval}'
       set high-availability vrrp group vrrp-vlan10 address '${var.vrrp_vip_vlan10}'
-      set high-availability vrrp group vrrp-vlan10 authentication type 'plaintext-password'
-      set high-availability vrrp group vrrp-vlan10 authentication password '${var.vrrp_auth_password}'
 
       set high-availability vrrp group vrrp-vlan20 interface 'eth0.20'
       set high-availability vrrp group vrrp-vlan20 vrid '20'
       set high-availability vrrp group vrrp-vlan20 priority '${role == "master" ? var.vrrp_priority_master : var.vrrp_priority_backup}'
       set high-availability vrrp group vrrp-vlan20 advertise-interval '${var.vrrp_advertise_interval}'
       set high-availability vrrp group vrrp-vlan20 address '${var.vrrp_vip_vlan20}'
-      set high-availability vrrp group vrrp-vlan20 authentication type 'plaintext-password'
-      set high-availability vrrp group vrrp-vlan20 authentication password '${var.vrrp_auth_password}'
 
       set high-availability vrrp group vrrp-vlan30 interface 'eth0.30'
       set high-availability vrrp group vrrp-vlan30 vrid '30'
       set high-availability vrrp group vrrp-vlan30 priority '${role == "master" ? var.vrrp_priority_master : var.vrrp_priority_backup}'
       set high-availability vrrp group vrrp-vlan30 advertise-interval '${var.vrrp_advertise_interval}'
       set high-availability vrrp group vrrp-vlan30 address '${var.vrrp_vip_vlan30}'
-      set high-availability vrrp group vrrp-vlan30 authentication type 'plaintext-password'
-      set high-availability vrrp group vrrp-vlan30 authentication password '${var.vrrp_auth_password}'
     EOT
   }
 }

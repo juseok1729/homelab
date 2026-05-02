@@ -190,10 +190,3 @@ variable "vrrp_advertise_interval" {
   type        = number
   default     = 1
 }
-
-variable "vrrp_auth_password" {
-  description = "VRRP simple auth password (shared between both routers)"
-  type        = string
-  default     = "homelab-vrrp"
-  sensitive   = true
-}

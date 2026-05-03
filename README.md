@@ -9,6 +9,44 @@
 
 <!-- tocstop -->
 
+## VM 배치 토폴로지
+```mermaid
+flowchart TB
+    subgraph Node1["🖥️ Node1 · pve-node1 / Lenovo m70q gen6 · 32G / 14c"]
+        direction TB
+        VY1["🌐 vyos-rtr-1<br/>2c · 2G · 10G<br/>📌 VRRP master"]
+        CP1["🔵 k8s-cp1<br/>2c · 4G · 30G<br/>📌 P-core pinned"]
+        W1["🟢 k8s-w1<br/>6c · 12G · 80G<br/>메인 워커"]
+        TS["🟣 tailscale-gw<br/>1c · 0.5G · 4G<br/>LXC subnet router"]
+    end
+
+    subgraph Node2["🖥️ Node2 · pve-node2 / Dell 7070 micro · 16G / 6c"]
+        direction TB
+        VY2["🌐 vyos-rtr-2<br/>1c · 1G · 10G<br/>📌 VRRP backup"]
+        CP2["🔵 k8s-cp2<br/>2c · 4G · 30G"]
+        W2["🟢 k8s-w2<br/>3c · 8G · 60G"]
+    end
+
+    subgraph Node3["🖥️ Node3 · pve-node3 / Dell 7070 micro · 16G / 6c"]
+        direction TB
+        CP3["🔵 k8s-cp3<br/>2c · 4G · 30G"]
+        W3["🟢 k8s-w3<br/>3c · 8G · 60G"]
+    end
+
+    Node1 ~~~ Node2
+    Node2 ~~~ Node3
+
+    classDef router fill:#FAEEDA,stroke:#854F0B,color:#412402
+    classDef cp fill:#E6F1FB,stroke:#185FA5,color:#042C53
+    classDef worker fill:#E1F5EE,stroke:#0F6E56,color:#04342C
+    classDef gw fill:#EEEDFE,stroke:#534AB7,color:#26215C
+
+    class VY1,VY2 router
+    class CP1,CP2,CP3 cp
+    class W1,W2,W3 worker
+    class TS gw
+```
+
 ## 네트워크 토폴로지
 ```mermaid
 flowchart TD

@@ -1,0 +1,194 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1777787687106,
+  "projectRoot": "/Users/peter/Projects/homelab/homelab-iac",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "assets",
+      "docs"
+    ],
+    "gitBranches": {
+      "defaultBranch": "master",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "assets": {
+      "path": "assets",
+      "purpose": "Static assets",
+      "fileCount": 1,
+      "lastAccessed": 1777787687086,
+      "keyFiles": [
+        "phase1-4.png"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 2,
+      "lastAccessed": 1777787687086,
+      "keyFiles": [
+        "INSTALL.md",
+        "vyos-template-creation-guide.md"
+      ]
+    },
+    "modules": {
+      "path": "modules",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1777787687086,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "locals.tf",
+      "accessCount": 3,
+      "lastAccessed": 1777788179150,
+      "type": "file"
+    },
+    {
+      "path": "outputs.tf",
+      "accessCount": 3,
+      "lastAccessed": 1777788194538,
+      "type": "file"
+    },
+    {
+      "path": "vyos.tf",
+      "accessCount": 3,
+      "lastAccessed": 1777788199924,
+      "type": "file"
+    },
+    {
+      "path": "terraform.tfvars",
+      "accessCount": 3,
+      "lastAccessed": 1777788387108,
+      "type": "file"
+    },
+    {
+      "path": "variables.tf",
+      "accessCount": 2,
+      "lastAccessed": 1777787970560,
+      "type": "file"
+    },
+    {
+      "path": "versions.tf",
+      "accessCount": 2,
+      "lastAccessed": 1777787971444,
+      "type": "file"
+    },
+    {
+      "path": "providers.tf",
+      "accessCount": 2,
+      "lastAccessed": 1777787971618,
+      "type": "file"
+    },
+    {
+      "path": "modules/vyos-router/variables.tf",
+      "accessCount": 2,
+      "lastAccessed": 1777788311632,
+      "type": "file"
+    },
+    {
+      "path": "main.tf",
+      "accessCount": 2,
+      "lastAccessed": 1777788319953,
+      "type": "file"
+    },
+    {
+      "path": "moved.tf",
+      "accessCount": 2,
+      "lastAccessed": 1777792853467,
+      "type": "file"
+    },
+    {
+      "path": "terraform.tfvars.example",
+      "accessCount": 1,
+      "lastAccessed": 1777787876439,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1777787880454,
+      "type": "file"
+    },
+    {
+      "path": "docs/INSTALL.md",
+      "accessCount": 1,
+      "lastAccessed": 1777787883700,
+      "type": "file"
+    },
+    {
+      "path": "docs/vyos-template-creation-guide.md",
+      "accessCount": 1,
+      "lastAccessed": 1777787883917,
+      "type": "file"
+    },
+    {
+      "path": "modules/vyos-router/locals.tf",
+      "accessCount": 1,
+      "lastAccessed": 1777788134257,
+      "type": "file"
+    },
+    {
+      "path": "modules/vyos-router/main.tf",
+      "accessCount": 1,
+      "lastAccessed": 1777788145247,
+      "type": "file"
+    },
+    {
+      "path": "modules/vyos-router/outputs.tf",
+      "accessCount": 1,
+      "lastAccessed": 1777788153964,
+      "type": "file"
+    },
+    {
+      "path": "modules/k8s-cluster/README.md",
+      "accessCount": 1,
+      "lastAccessed": 1777788210681,
+      "type": "file"
+    },
+    {
+      "path": "modules/lxc-container/README.md",
+      "accessCount": 1,
+      "lastAccessed": 1777788223704,
+      "type": "file"
+    },
+    {
+      "path": "modules/vyos-router/versions.tf",
+      "accessCount": 1,
+      "lastAccessed": 1777788241757,
+      "type": "file"
+    },
+    {
+      "path": "docs/REFACTORING.md",
+      "accessCount": 1,
+      "lastAccessed": 1777788453532,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

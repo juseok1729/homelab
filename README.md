@@ -9,6 +9,45 @@
 
 <!-- tocstop -->
 
+## 네트워크 토폴로지
+```mermaid
+flowchart TD
+    %% 노드 스타일 정의
+    classDef isp fill:#f39c12,stroke:#e67e22,stroke-width:2px,color:#fff;
+    classDef switch fill:#34495e,stroke:#2c3e50,stroke-width:2px,color:#fff;
+    classDef desktop fill:#7f8c8d,stroke:#34495e,stroke-width:2px,color:#fff;
+    classDef portAccess fill:#2ecc71,stroke:#27ae60,stroke-width:2px,color:#fff;
+    classDef portTrunk fill:#3498db,stroke:#2980b9,stroke-width:2px,color:#fff;
+    classDef pve fill:#9b59b6,stroke:#8e44ad,stroke-width:2px,color:#fff;
+
+    subgraph External ["External Network"]
+        ISP["통신사 공유기 (ISP Router)\nGW: 192.168.219.1\nNAT + DHCP + WiFi AP"]:::isp
+    end
+
+    subgraph Switch ["MikroTik CRS310-8G+2S+"]
+        Bridge["bridgeLocal\n(VLAN Filtering: ON)"]:::switch
+
+        Port1["ether1\n(Uplink)"]:::portAccess
+        Port2["ether2\n(Desktop)"]:::portAccess
+        Port3["ether3\n(Trunk: pve-node1)"]:::portTrunk
+        Port4["ether4\n(Trunk: pve-node2)"]:::portTrunk
+        Port5["ether5\n(Trunk: pve-node3)"]:::portTrunk
+
+        Bridge --- Port1
+        Bridge --- Port2
+        Bridge --- Port3
+        Bridge --- Port4
+        Bridge --- Port5
+    end
+
+    ISP <==>|VLAN 1 Untagged| Port1
+    Port2 <==>|VLAN 1 Untagged| PC["Desktop PC"]:::desktop
+
+    Port3 <==>|Trunk: 1, 10, 20, 30| Node1["pve-node1 (Lenovo)\nvmbr0 vlan-aware"]:::pve
+    Port4 <==>|Trunk: 1, 10, 20, 30| Node2["pve-node2 (Dell)\nvmbr0 vlan-aware"]:::pve
+    Port5 <==>|Trunk: 1, 10, 20, 30| Node3["pve-node3 (Dell)\nvmbr0 vlan-aware"]:::pve
+```
+
 ## Todo
 ### Phase0
 - [x] VyOS Rolling generic ISO에 cloud-init 부재 확인

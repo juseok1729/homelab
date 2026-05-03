@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"terraform init -upgrade 2>&1\",\"timeout\":60000,\"description\":\"Run terraform init to register new module\"}",
+  "error": "Exit code 1\n\n\u001b[0m\u001b[1mInitializing the backend...\u001b[0m\n\u001b[0m\u001b[1mUpgrading modules...\u001b[0m\n- vyos_rtr_1 in modules/vyos-router\n- vyos_rtr_2 in modules/vyos-router\n\n\u001b[0m\u001b[1mInitializing provider plugins...\u001b[0m\n- Finding latest version of hashicorp/proxmox...\n- Finding latest version of hashicorp/null...\n- Finding bpg/proxmox versions matching \"~> 0.66\"...\n- Using previously-installed hashicorp/null v3.2.4\n- Installing bpg/proxmox v0.105.0...\n- Installed bpg/proxmox v0.105.0 (self-signed, key ID \u001b[0m\u001b[...",
+  "timestamp": "2026-05-03T06:03:53.442Z",
+  "retry_count": 1
+}

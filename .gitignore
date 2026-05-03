@@ -18,6 +18,13 @@
 crash.log
 crash.*.log
 
+# Packer secrets
+*.pkrvars.hcl
+!*.pkrvars.hcl.example
+
+# Packer internals
+packer_cache/
+
 # OS
 .DS_Store
 Thumbs.db

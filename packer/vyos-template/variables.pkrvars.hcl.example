@@ -1,0 +1,6 @@
+# API token secret UUID만 입력 (terraform@pve!provisioner= 뒤에 오는 값)
+proxmox_token = "your-token-uuid-here"
+
+# ISO SHA256 체크섬 — GitHub release 페이지의 .sha256 파일 참고
+# 개발 중에는 "none"으로 두어도 무방
+iso_checksum = "sha256:your-iso-sha256-here"

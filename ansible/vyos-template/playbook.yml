@@ -1,0 +1,96 @@
+---
+# Packer의 ansible provisioner가 호출하는 playbook.
+# 대상 VM은 Packer가 임시 인벤토리로 주입 — 별도 hosts 파일 불필요.
+- name: Configure VyOS template
+  hosts: all
+  gather_facts: false
+
+  vars:
+    debian_repo: "deb http://deb.debian.org/debian bookworm main"
+
+  tasks:
+    # ── 연결 대기 ────────────────────────────────────────────
+    - name: Wait for SSH to become available
+      ansible.builtin.wait_for_connection:
+        timeout: 120
+
+    # ── VyOS 시스템 설정 (vbash 필요) ───────────────────────
+    - name: Apply VyOS base config (hostname, timezone, DNS)
+      ansible.builtin.shell: |
+        vbash << 'VYOS_EOF'
+        source /opt/vyatta/etc/functions/script-template
+        configure
+        set system host-name vyos-template
+        set system time-zone Asia/Seoul
+        set system name-server 1.1.1.1
+        set system name-server 8.8.8.8
+        commit
+        save
+        exit
+        VYOS_EOF
+      changed_when: true
+
+    # ── Debian repo 임시 추가 ────────────────────────────────
+    # VyOS rolling은 자체 repo만 활성화되어 있어 qemu-guest-agent 없음
+    - name: Add Debian Bookworm repo temporarily
+      ansible.builtin.shell: |
+        echo "{{ debian_repo }}" | sudo tee /etc/apt/sources.list.d/debian-bookworm.list
+      changed_when: true
+
+    - name: Update apt cache
+      ansible.builtin.command: sudo apt-get update -qq
+      changed_when: false
+
+    # ── qemu-guest-agent 설치 ────────────────────────────────
+    # 추가되는 패키지: qemu-guest-agent + liburing2 (시스템 라이브러리 변경 없음)
+    - name: Install qemu-guest-agent
+      ansible.builtin.command: >
+        sudo apt-get install -y --no-install-recommends qemu-guest-agent
+      changed_when: true
+
+    - name: Enable qemu-guest-agent service
+      ansible.builtin.command: sudo systemctl enable qemu-guest-agent
+      changed_when: true
+
+    - name: Start qemu-guest-agent service
+      ansible.builtin.command: sudo systemctl start qemu-guest-agent
+      changed_when: true
+
+    # ── Debian repo 제거 (sealed image 복원) ─────────────────
+    - name: Remove temporary Debian repo
+      ansible.builtin.command: sudo rm /etc/apt/sources.list.d/debian-bookworm.list
+      changed_when: true
+
+    - name: Update apt cache after repo removal
+      ansible.builtin.command: sudo apt-get update -qq
+      changed_when: false
+
+    - name: Clean apt cache
+      ansible.builtin.command: sudo apt-get clean
+      changed_when: true
+
+    # ── 검증 ─────────────────────────────────────────────────
+    - name: Verify qemu-guest-agent is running
+      ansible.builtin.command: systemctl is-active qemu-guest-agent
+      register: agent_status
+      changed_when: false
+      failed_when: agent_status.stdout != "active"
+
+    - name: Verify no temporary repos remain
+      ansible.builtin.command: ls /etc/apt/sources.list.d/
+      register: sources_dir
+      changed_when: false
+      failed_when: sources_dir.stdout != ""
+
+    - name: Verify installed packages
+      ansible.builtin.command: dpkg -l qemu-guest-agent
+      register: pkg_check
+      changed_when: false
+      failed_when: pkg_check.rc != 0
+
+    - name: Report completion
+      ansible.builtin.debug:
+        msg: >
+          VyOS template ready.
+          qemu-guest-agent: {{ agent_status.stdout }},
+          apt sources.list.d: empty

@@ -24,6 +24,7 @@ crash.*.log
 
 # Packer internals
 packer_cache/
+downloaded_iso_path/
 
 # OS
 .DS_Store

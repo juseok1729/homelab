@@ -4,3 +4,7 @@ proxmox_token = "your-token-uuid-here"
 # ISO SHA256 체크섬 — GitHub release 페이지의 .sha256 파일 참고
 # 개발 중에는 "none"으로 두어도 무방
 iso_checksum = "sha256:your-iso-sha256-here"
+
+# Packer SSH 접속용 임시 고정 IP — 빌드 중 다른 호스트와 충돌하지 않는 IP 사용
+# 빌드 완료 후 shutdown_command가 DHCP로 리셋하므로 template에 남지 않음
+build_ip = "192.168.219.200"

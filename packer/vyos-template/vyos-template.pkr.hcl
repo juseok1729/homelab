@@ -54,7 +54,7 @@ variable "iso_checksum" {
 }
 
 variable "upstream_gateway" {
-  description = "ISP 라우터 게이트웨이 (bootstrap DHCP 실패 시 static route용)"
+  description = "ISP 라우터 게이트웨이"
   type        = string
   default     = "192.168.219.1"
 }
@@ -64,6 +64,17 @@ variable "vyos_password" {
   type        = string
   default     = "vyos"
   sensitive   = true
+}
+
+variable "build_ip" {
+  description = <<-EOT
+    Packer 빌드 중 SSH 접속에 사용할 임시 고정 IP.
+    - qemu-guest-agent가 없는 상태에서 Packer가 IP를 탐지할 수 없으므로 필수.
+    - 빌드가 끝나면 shutdown_command가 DHCP로 리셋하므로 템플릿에 남지 않음.
+    - 빌드 중 해당 IP가 다른 호스트와 충돌하지 않아야 함.
+  EOT
+  type        = string
+  default     = "192.168.219.200"
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -82,12 +93,14 @@ source "proxmox-iso" "vyos" {
   vm_name = "vyos-template"
 
   # ISO — Packer가 local storage에 다운로드 후 마운트
-  iso_url          = var.iso_url
-  iso_checksum     = var.iso_checksum
-  iso_storage_pool = "local"
-  unmount_iso      = true
+  boot_iso {
+    iso_url          = var.iso_url
+    iso_checksum     = var.iso_checksum
+    iso_storage_pool = "local"
+    unmount          = true
+  }
 
-  # Hardware (user 수동 설치와 동일 스펙)
+  # Hardware (수동 설치와 동일 스펙)
   memory   = 1024
   cores    = 1
   cpu_type = "host"
@@ -108,13 +121,19 @@ source "proxmox-iso" "vyos" {
     model  = "virtio"
   }
 
-  # Serial console (VyOS 설치 화면 출력용)
-  serial_ports = ["socket"]
+  # Packer는 VNC로 boot_command를 전송하므로 표준 VGA 사용.
+  # serial0 설정은 template 완성 후 PVE에서 별도 추가:
+  #   qm set <vm_id> --serial0 socket --vga serial0
   vga {
-    type = "serial0"
+    type = "std"
   }
 
+  # agent: enabled=1 으로 VM 설정 (Terraform clone 후 사용)
   qemu_agent = true
+
+  # 부팅 순서: 디스크 우선 → 설치 전엔 BIOS가 CDROM으로 폴백, 설치 후엔 디스크 GRUB 사용
+  # eject 명령 없이도 install 완료 후 재부팅 시 자동으로 디스크에서 부팅됨
+  boot = "order=scsi0;ide2"
 
   # cloud-init drive: VyOS가 읽지는 않지만 PVE 메커니즘 호환용
   cloud_init_storage_pool = "local-lvm"
@@ -123,20 +142,25 @@ source "proxmox-iso" "vyos" {
   template_name        = "vyos-template"
   template_description = "VyOS rolling template — built with Packer + Ansible"
 
-  # SSH communicator (Ansible provisioner 연결용)
+  # SSH communicator
+  # ssh_host: build_ip를 직접 지정해 guest-agent 없이도 접속 가능
   communicator = "ssh"
   ssh_username = "vyos"
   ssh_password = var.vyos_password
+  ssh_host     = var.build_ip
   ssh_timeout  = "20m"
 
   # ── Boot sequence ─────────────────────────────────────────
-  # 흐름: ISO 첫 부팅 → 로그인 → install image → 재부팅
-  #       → 설치된 VyOS 부팅 → DHCP+SSH 설정 → Packer SSH 연결
-  boot_wait = "30s"
+  # Phase 1: ISO 첫 부팅 → 로그인
+  # Phase 2: install image 대화형 응답
+  # Phase 3: 재부팅 (boot=order=scsi0;ide2 덕분에 디스크로 자동 부팅)
+  # Phase 4: 설치된 VyOS 로그인
+  # Phase 5: 고정 IP + SSH 설정 → Packer SSH 접속 대기
+  boot_wait = "45s"
   boot_command = [
     # ── Phase 1: ISO 환경 로그인 ─────────────────────────────
     "vyos<enter><wait3>",
-    "vyos<enter><wait5>",
+    "vyos<enter><wait3>",
 
     # ── Phase 2: install image 대화형 응답 ───────────────────
     "install image<enter><wait5>",
@@ -147,18 +171,19 @@ source "proxmox-iso" "vyos" {
     # Password for vyos user
     "${var.vyos_password}<enter><wait3>",
     "${var.vyos_password}<enter><wait3>",
-    # Console type (default: S — serial)
-    "<enter><wait3>",
-    # Installation disk (default: /dev/sda)
+    # Console type: K (KVM/VGA)
+    "K<enter><wait5>",
+    # Installation disk — 디스크 탐색(Probing disks)이 끝날 때까지 대기
     "<enter><wait5>",
     # Delete all data? [y/N]
     "y<enter><wait5>",
-    # Use all free space? [Y/n]
-    "<enter><wait90>",
+    # Use all free space? [Y/n] — 파티션 + 설치 완료까지 대기
+    "<enter><wait10>",
     # Boot config file (default: 1)
-    "<enter><wait30>",
+    "<enter><wait10>",
 
-    # ── Phase 3: 설치 완료 → 재부팅 ──────────────────────────
+    # ── Phase 3: 재부팅 → 디스크 부팅 ───────────────────────
+    # boot=order=scsi0;ide2 설정으로 GRUB이 설치된 디스크가 우선 부팅됨
     "reboot<enter><wait5>",
     "y<enter><wait90>",
 
@@ -166,10 +191,9 @@ source "proxmox-iso" "vyos" {
     "vyos<enter><wait3>",
     "${var.vyos_password}<enter><wait5>",
 
-    # ── Phase 5: Packer SSH 연결을 위한 최소 네트워크 설정 ───
-    # Ansible provisioner가 SSH로 접속하려면 DHCP IP와 SSH 서비스가 필요
+    # ── Phase 5: 고정 IP + SSH 설정 ──────────────────────────
     "configure<enter><wait2>",
-    "set interfaces ethernet eth0 address dhcp<enter><wait2>",
+    "set interfaces ethernet eth0 address ${var.build_ip}/24<enter><wait2>",
     "set service ssh port 22<enter><wait2>",
     "set service ssh listen-address 0.0.0.0<enter><wait2>",
     "set protocols static route 0.0.0.0/0 next-hop ${var.upstream_gateway}<enter><wait2>",
@@ -186,8 +210,13 @@ build {
   name    = "vyos-template"
   sources = ["source.proxmox-iso.vyos"]
 
-  # Ansible이 나머지 설정을 담당:
-  # timezone, DNS, hostname, qemu-guest-agent 설치 및 검증
+  # cleanup 스크립트 업로드 (Ansible 전에 올려둬야 SSH 연결이 안정적)
+  provisioner "file" {
+    source      = "dhcp-reset.sh"
+    destination = "/tmp/dhcp-reset.sh"
+  }
+
+  # Ansible: timezone, DNS, hostname, qemu-guest-agent 설치 및 검증
   provisioner "ansible" {
     playbook_file = "../../ansible/vyos-template/playbook.yml"
     user          = "vyos"
@@ -195,5 +224,18 @@ build {
       "--extra-vars", "ansible_python_interpreter=/usr/bin/python3",
       "--extra-vars", "ansible_become_pass=${var.vyos_password}",
     ]
+  }
+
+  # 마지막 단계: DHCP로 리셋 후 종료
+  # nohup으로 SSH 세션과 분리 → commit 후 IP 변경으로 SSH 끊겨도 계속 실행됨
+  # ① sleep 2 → vbash /tmp/dhcp-reset.sh (DHCP commit + save)
+  # ② sleep 8 → sudo poweroff
+  # Packer는 expect_disconnect=true 로 SSH 끊김을 허용하고
+  # Proxmox API 폴링으로 VM 종료를 확인 후 template 변환 진행
+  provisioner "shell" {
+    inline = [
+      "nohup bash -c 'sleep 2 && vbash /tmp/dhcp-reset.sh; sleep 8 && sudo poweroff' </dev/null >/dev/null 2>&1 &"
+    ]
+    expect_disconnect = true
   }
 }

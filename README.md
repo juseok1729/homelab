@@ -2,11 +2,11 @@
 <!-- toc -->
 
 - [Todo](#todo)
-  - [Phase0](#phase0)
-  - [Phase1](#phase1)
-  - [Phase2](#phase2)
-  - [Phase3](#phase3)
-  - [Phase4](#phase4)
+  - [Phase0: VyOS Template 수동 제작](#phase0-vyos-template-수동-제작)
+  - [Phase1: Terraform 첫 번째 VM 프로비저닝](#phase1-terraform-첫-번째-vm-프로비저닝)
+  - [Phase2: vyos-rtr-1 네트워크 설정](#phase2-vyos-rtr-1-네트워크-설정)
+  - [Phase3: VRRP HA 이중화 구성](#phase3-vrrp-ha-이중화-구성)
+  - [Phase4: IaC 리팩토링 및 Template 자동화](#phase4-iac-리팩토링-및-template-자동화)
 
 <!-- tocstop -->
 

@@ -88,7 +88,7 @@ flowchart TD
 ```
 
 ## Todo
-### Phase0
+### Phase0: VyOS Template 수동 제작
 - [x] VyOS Rolling generic ISO에 cloud-init 부재 확인
 - [x] Default apt repo 비활성 상태에서 외부 repo 일회성 활용
 - [x] qemu-guest-agent 설치로 PVE → guest IP 자동 발견 가능
@@ -96,7 +96,7 @@ flowchart TD
 - [x] Template lock + cloud-init drive 부착
 - [x] Clone 검증 (998)으로 모든 흐름 통과 확인
 
-### Phase1
+### Phase1: Terraform 첫 번째 VM 프로비저닝
 - [x] PVE API 토큰 (terraform@pve!provisioner) 발급
 - [x] Terraform Level 2.5 평면 구조 빌드
 - [x] bpg/proxmox provider 0.66 설치 + 인증 동작
@@ -105,7 +105,7 @@ flowchart TD
 - [x] External SSH 도달성 검증
 - [x] VM 안에서 외부 ping 도달 (vlan1 default route 통해)
 
-### Phase2
+### Phase2: vyos-rtr-1 네트워크 설정
 - [x] Hostname: vyos-rtr-1
 - [x] vlan10/20/30 sub-interfaces (.252 IPs, descriptions)
 - [x] NAT rules 100/110/120 (vlan10/20/30 → eth0 masquerade)
@@ -113,13 +113,13 @@ flowchart TD
 - [x] Routing: connected vlan10/20/30 + static default
 - [x] External SSH 여전히 가능 (vlan1 DHCP IP 유지 — 디버깅 fallback)
 
-### Phase3
+### Phase3: VRRP HA 이중화 구성
 - [x] Master/Backup 정확히 분리 (priority 200 > 100)
 - [x] VRID matching (rtr-1과 rtr-2의 VRID 10/20/30이 정확히 매칭 → 같은 VRRP group으로 인식)
 - [x] Last Transition이 1분대 — 가장 최근 apply에서 시작됐다는 증거
 - [x] Sync-group ALL 동작 중 (3 group 모두 동일 상태)
 
-### Phase4
+### Phase4: IaC 리팩토링 및 Template 자동화
 #### Terraform 모듈화
 - [x] 평면(flat) 구조 → `modules/vyos-router/` 재사용 모듈 분리
 - [x] `role = "master" | "backup"` 변수로 VRRP 우선순위 자동 계산

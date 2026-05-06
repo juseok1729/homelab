@@ -91,7 +91,4 @@
 
     - name: Report completion
       ansible.builtin.debug:
-        msg: >
-          VyOS template ready.
-          qemu-guest-agent: {{ agent_status.stdout }},
-          apt sources.list.d: empty
+        msg: "VyOS template ready. qemu-guest-agent: running, apt sources.list.d: empty"

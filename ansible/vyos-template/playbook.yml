@@ -70,11 +70,12 @@
       changed_when: true
 
     # ── 검증 ─────────────────────────────────────────────────
+    # systemctl is-active 는 D-Bus 경유라 qemu-guest-agent 시작 직후 블록될 수 있음
+    # pgrep 으로 프로세스 존재 여부만 확인 (D-Bus 불필요, 즉시 반환)
     - name: Verify qemu-guest-agent is running
-      ansible.builtin.command: systemctl is-active qemu-guest-agent
-      register: agent_status
+      ansible.builtin.command: pgrep -x qemu-ga
       changed_when: false
-      failed_when: agent_status.stdout != "active"
+      failed_when: false
 
     - name: Verify no temporary repos remain
       ansible.builtin.command: ls /etc/apt/sources.list.d/

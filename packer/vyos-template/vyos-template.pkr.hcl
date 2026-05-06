@@ -244,7 +244,7 @@ build {
       # serial console (Terraform clone 후 qm terminal 가능하게)
       "ssh root@${split(":", split("//", var.proxmox_url)[1])[0]} 'qm set ${var.vm_id} --serial0 socket --vga serial0'",
       # cloud-init drive (PVE 호환)
-      "ssh root@${split(":", split("//", var.proxmox_url)[1])[0]} 'qm set ${var.vm_id} --ide2 local-lvm:cloudinit'",
+      "ssh root@${split(":", split("//", var.proxmox_url)[1])[0]} 'qm set ${var.vm_id} --ide2 local-lvm:cloudinit --agent enabled=1'",
     ]
   }
 }

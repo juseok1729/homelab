@@ -225,7 +225,7 @@ build {
   # sed로 config.boot 파일을 직접 수정 → IP 변경 없음 → SSH 유지 → poweroff 정상 실행
   provisioner "shell" {
     inline = [
-      "sudo sed -i 's|address ${var.build_ip}/24|address dhcp|' /config/config.boot",
+      "sudo sed -i 's|address \"${var.build_ip}/24\"|address dhcp|' /config/config.boot",
       "nohup bash -c 'sleep 3 && sudo poweroff' </dev/null >/dev/null 2>&1 &"
     ]
     expect_disconnect = true

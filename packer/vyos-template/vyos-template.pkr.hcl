@@ -210,12 +210,6 @@ build {
   name    = "vyos-template"
   sources = ["source.proxmox-iso.vyos"]
 
-  # cleanup 스크립트 업로드 (Ansible 전에 올려둬야 SSH 연결이 안정적)
-  provisioner "file" {
-    source      = "dhcp-reset.sh"
-    destination = "/tmp/dhcp-reset.sh"
-  }
-
   # Ansible: timezone, DNS, hostname, qemu-guest-agent 설치 및 검증
   provisioner "ansible" {
     playbook_file = "../../ansible/vyos-template/playbook.yml"
@@ -226,15 +220,13 @@ build {
     ]
   }
 
-  # 마지막 단계: DHCP로 리셋 후 종료
-  # nohup으로 SSH 세션과 분리 → commit 후 IP 변경으로 SSH 끊겨도 계속 실행됨
-  # ① sleep 2 → vbash /tmp/dhcp-reset.sh (DHCP commit + save)
-  # ② sleep 8 → sudo poweroff
-  # Packer는 expect_disconnect=true 로 SSH 끊김을 허용하고
-  # Proxmox API 폴링으로 VM 종료를 확인 후 template 변환 진행
+  # 마지막 단계: config.boot 직접 수정 후 종료
+  # vbash commit 방식은 IP 변경 시 SSH SIGHUP → poweroff 미실행 문제 있음
+  # sed로 config.boot 파일을 직접 수정 → IP 변경 없음 → SSH 유지 → poweroff 정상 실행
   provisioner "shell" {
     inline = [
-      "nohup bash -c 'sleep 2 && vbash /tmp/dhcp-reset.sh; sleep 8 && sudo poweroff' </dev/null >/dev/null 2>&1 &"
+      "sudo sed -i 's|address ${var.build_ip}/24|address dhcp|' /config/config.boot",
+      "nohup bash -c 'sleep 3 && sudo poweroff' </dev/null >/dev/null 2>&1 &"
     ]
     expect_disconnect = true
   }

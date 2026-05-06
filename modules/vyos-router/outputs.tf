@@ -19,7 +19,7 @@ output "bootstrap_ip" {
 }
 
 output "ssh_command" {
-  value = "ssh ${var.default_user}@${local.bootstrap_ip}"
+  value = "ssh ${var.default_user}@${coalesce(local.bootstrap_ip, "<unknown>")}"
 }
 
 output "vlan10_ip" {

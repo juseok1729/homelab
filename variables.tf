@@ -124,12 +124,12 @@ variable "vyos_rtr_2_node" {
 
 variable "vyos_rtr_2_cores" {
   type    = number
-  default = 1
+  default = 2
 }
 
 variable "vyos_rtr_2_memory" {
   type    = number
-  default = 1024
+  default = 2048
 }
 
 variable "vyos_rtr_2_disk_size" {

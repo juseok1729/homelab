@@ -11,7 +11,7 @@ module "vyos_rtr_1" {
   template_id = var.vyos_template_id
   # template_node omitted — template and VM are on the same node (pve-node1)
   description = "VyOS HA router (master) - managed by Terraform"
-  tags          = local.vm_tags_router
+  tags        = local.vm_tags_router
 
   cores     = var.vyos_rtr_1_cores
   memory    = var.vyos_rtr_1_memory

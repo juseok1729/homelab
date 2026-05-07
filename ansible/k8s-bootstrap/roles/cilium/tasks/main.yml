@@ -1,0 +1,70 @@
+---
+# ─────────────────────────────────────────────────────────────
+# Cilium CNI: kube-proxy 대체 + eBPF native routing + BGP
+# 첫 번째 CP에서 Helm으로 설치, BGP Peering Policy 적용
+# ─────────────────────────────────────────────────────────────
+
+- name: Install Helm (if not present)
+  shell: |
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  args:
+    creates: /usr/local/bin/helm
+  become: true
+
+- name: Add Cilium Helm repo
+  command: helm repo add cilium https://helm.cilium.io/
+  changed_when: false
+
+- name: Update Helm repos
+  command: helm repo update
+  changed_when: false
+
+- name: Install Cilium via Helm
+  command: >-
+    helm upgrade --install cilium cilium/cilium
+    --version {{ cilium_version }}
+    --namespace kube-system
+    --set kubeProxyReplacement=true
+    --set k8sServiceHost={{ k8s_vip }}
+    --set k8sServicePort=6443
+    --set bgpControlPlane.enabled=true
+    --set ipam.mode=kubernetes
+    --set ipv4NativeRoutingCIDR={{ pod_cidr }}
+    --set bpf.masquerade=true
+    --set routingMode=native
+    --set autoDirectNodeRoutes=true
+  environment:
+    KUBECONFIG: /home/ansible/.kube/config
+
+- name: Wait for Cilium DaemonSet to be ready
+  command: >-
+    kubectl rollout status daemonset/cilium
+    --namespace kube-system
+    --timeout=300s
+  environment:
+    KUBECONFIG: /home/ansible/.kube/config
+  changed_when: false
+
+- name: Apply Cilium BGP Peering Policy
+  template:
+    src: cilium-bgp-policy.yaml.j2
+    dest: /tmp/cilium-bgp-policy.yaml
+    mode: "0644"
+
+- name: Deploy BGP Peering Policy
+  command: kubectl apply -f /tmp/cilium-bgp-policy.yaml
+  environment:
+    KUBECONFIG: /home/ansible/.kube/config
+
+- name: Verify Cilium status
+  command: >-
+    kubectl get pods -n kube-system -l app.kubernetes.io/name=cilium
+    --no-headers
+  environment:
+    KUBECONFIG: /home/ansible/.kube/config
+  register: cilium_pods
+  changed_when: false
+
+- name: Show Cilium pods
+  debug:
+    var: cilium_pods.stdout_lines

@@ -145,3 +145,33 @@ variable "vrrp_advertise_interval" {
   type        = number
   default     = 1
 }
+
+# ─────────────────────────────────────────────────────────────
+# BGP (optional — k8s Cilium BGP peering용)
+# ─────────────────────────────────────────────────────────────
+variable "mgmt_network" {
+  description = "관리 네트워크 CIDR (vlan1). 이 대역으로 향하는 트래픽은 NAT 제외 처리"
+  type        = string
+  default     = "192.168.219.0/24"
+}
+
+variable "bgp_enabled" {
+  description = "BGP 활성화 여부"
+  type        = bool
+  default     = false
+}
+
+variable "bgp_local_as" {
+  description = "VyOS BGP AS 번호"
+  type        = number
+  default     = 65000
+}
+
+variable "bgp_neighbors" {
+  description = "BGP neighbor 목록 (k8s 노드 IP)"
+  type = list(object({
+    ip        = string
+    remote_as = number
+  }))
+  default = []
+}

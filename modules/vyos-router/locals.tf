@@ -12,6 +12,14 @@ locals {
 
   vrrp_priority = var.role == "master" ? var.vrrp_priority_master : var.vrrp_priority_backup
 
+  # BGP config block — bgp_enabled=false이면 빈 문자열
+  bgp_config_block = var.bgp_enabled ? join("\n    ", concat(
+    ["set protocols bgp system-as '${var.bgp_local_as}'"],
+    [for n in var.bgp_neighbors : "set protocols bgp neighbor ${n.ip} remote-as '${n.remote_as}'"],
+    [for n in var.bgp_neighbors : "set protocols bgp neighbor ${n.ip} address-family ipv4-unicast"],
+    [for n in var.bgp_neighbors : "set protocols bgp neighbor ${n.ip} description 'k8s-node'"],
+  )) : ""
+
   vrrp_config_block = <<-EOT
     set high-availability vrrp sync-group ALL member 'vrrp-vlan10'
     set high-availability vrrp sync-group ALL member 'vrrp-vlan20'
@@ -49,6 +57,24 @@ locals {
     set interfaces ethernet eth0 vif 30 address '${var.vlan30_ip}'
     set interfaces ethernet eth0 vif 30 description 'storage'
 
+    set nat source rule 90 description 'no NAT: vlan10 to mgmt'
+    set nat source rule 90 source address '${local.vlan10_network}'
+    set nat source rule 90 destination address '${var.mgmt_network}'
+    set nat source rule 90 outbound-interface name 'eth0'
+    set nat source rule 90 exclude
+
+    set nat source rule 91 description 'no NAT: vlan20 to mgmt'
+    set nat source rule 91 source address '${local.vlan20_network}'
+    set nat source rule 91 destination address '${var.mgmt_network}'
+    set nat source rule 91 outbound-interface name 'eth0'
+    set nat source rule 91 exclude
+
+    set nat source rule 92 description 'no NAT: vlan30 to mgmt'
+    set nat source rule 92 source address '${local.vlan30_network}'
+    set nat source rule 92 destination address '${var.mgmt_network}'
+    set nat source rule 92 outbound-interface name 'eth0'
+    set nat source rule 92 exclude
+
     set nat source rule 100 description 'vlan10 to internet'
     set nat source rule 100 outbound-interface name 'eth0'
     set nat source rule 100 source address '${local.vlan10_network}'
@@ -69,6 +95,8 @@ locals {
     set firewall global-options state-policy invalid action 'drop'
 
     ${local.vrrp_config_block}
+
+    ${local.bgp_config_block}
 
     commit
     save

@@ -1,0 +1,124 @@
+---
+# ─────────────────────────────────────────────────────────────
+# kubeadm init: 첫 번째 control plane에서만 실행
+# join command와 cert key를 hostvars에 저장 → 다른 노드에서 참조
+# ─────────────────────────────────────────────────────────────
+
+- name: Check if admin.conf exists (완전 or 부분 init)
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeconfig_stat
+
+- name: Check if cluster is actually running (부분 init인지 확인)
+  command: kubectl --kubeconfig=/etc/kubernetes/admin.conf cluster-info
+  register: cluster_running
+  when: kubeconfig_stat.stat.exists
+  failed_when: false
+  changed_when: false
+
+- name: Reset partial kubeadm state (이전 실패한 init 정리)
+  command: kubeadm reset --force
+  when: kubeconfig_stat.stat.exists and (cluster_running is skipped or cluster_running.rc != 0)
+
+# kubeadm reset이 /etc/kubernetes/manifests/ 전체를 삭제하므로 kube-vip를 재배치
+- name: Re-create manifests directory after reset
+  file:
+    path: /etc/kubernetes/manifests
+    state: directory
+    mode: "0755"
+  when: kubeconfig_stat.stat.exists and (cluster_running is skipped or cluster_running.rc != 0)
+
+- name: Re-deploy kube-vip manifest after reset
+  include_role:
+    name: kube-vip
+  when: kubeconfig_stat.stat.exists and (cluster_running is skipped or cluster_running.rc != 0)
+
+# kubeadm의 [api-check]가 controlPlaneEndpoint(VIP)로 헬스체크하기 전에
+# VIP를 인터페이스에 직접 추가한다. kube-vip가 기동 후 관리권을 이어받음.
+- name: Add API server VIP to interface (bootstrap)
+  command: ip addr add {{ k8s_vip }}/32 dev {{ ansible_default_ipv4.interface }}
+  failed_when: false
+  changed_when: false
+
+- name: Copy kubeadm config
+  template:
+    src: kubeadm-config.yaml.j2
+    dest: /tmp/kubeadm-config.yaml
+    mode: "0644"
+
+- name: Run kubeadm init
+  command: kubeadm init --config /tmp/kubeadm-config.yaml --upload-certs
+  when: not kubeconfig_stat.stat.exists or (cluster_running is not skipped and cluster_running.rc != 0)
+  register: kubeadm_init_output
+
+# kube-vip.conf: server=127.0.0.1:6443 사용 → 재부팅 시 VIP 없이도 로컬 API서버 연결
+# 이 파일이 있어야 kube-vip이 재시작 후 닭-달걀 문제 없이 기동됨
+- name: Create kube-vip kubeconfig with local API server endpoint
+  shell: |
+    python3 << 'PYEOF'
+    import yaml
+    with open('/etc/kubernetes/admin.conf', 'r') as f:
+        config = yaml.safe_load(f)
+    for cluster in config.get('clusters', []):
+        cluster['cluster']['server'] = 'https://{{ ansible_default_ipv4.address }}:6443'
+    with open('/etc/kubernetes/kube-vip.conf', 'w') as f:
+        yaml.dump(config, f, default_flow_style=False)
+    PYEOF
+
+- name: Restart kube-vip pod to pick up new kubeconfig
+  command: >
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf delete pod
+    kube-vip-{{ inventory_hostname }} -n kube-system --ignore-not-found
+  failed_when: false
+  changed_when: false
+
+- name: Save kubeadm init output for debugging
+  copy:
+    content: "{{ kubeadm_init_output.stdout | default('') }}"
+    dest: /tmp/kubeadm-init.log
+  when: kubeadm_init_output.stdout is defined
+
+# ── kubeconfig 설정 ──────────────────────────────────────────
+- name: Create .kube directory for ansible user
+  file:
+    path: /home/ansible/.kube
+    state: directory
+    owner: ansible
+    group: ansible
+    mode: "0750"
+
+- name: Copy admin.conf to ansible user
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/ansible/.kube/config
+    remote_src: true
+    owner: ansible
+    group: ansible
+    mode: "0600"
+
+# ── join 토큰 생성 (다른 노드 join용) ───────────────────────
+- name: Generate worker join command
+  command: kubeadm token create --print-join-command
+  register: worker_join_cmd
+  changed_when: false
+
+- name: Upload certs and capture cert key
+  command: kubeadm init phase upload-certs --upload-certs
+  register: upload_certs_output
+  changed_when: false
+
+- name: Extract certificate key
+  set_fact:
+    cert_key: "{{ upload_certs_output.stdout_lines[-1] }}"
+
+- name: Expose join info via hostvars
+  set_fact:
+    worker_join_command: "{{ worker_join_cmd.stdout }}"
+    cp_cert_key: "{{ cert_key }}"
+
+# ── kubeconfig를 Terraform 호스트로 fetch ───────────────────
+- name: Fetch kubeconfig to local
+  fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ kubeconfig_local_path | default('/tmp/homelab-kubeconfig') }}"
+    flat: true

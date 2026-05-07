@@ -1,0 +1,14 @@
+---
+# ─────────────────────────────────────────────────────────────
+# kubeadm join: worker 노드
+# 첫 번째 CP의 hostvars에서 worker join command를 가져옴
+# ─────────────────────────────────────────────────────────────
+
+- name: Check if already joined
+  stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: kubelet_conf_stat
+
+- name: Join as worker
+  command: "{{ hostvars[groups['control_plane'][0]]['worker_join_command'] }}"
+  when: not kubelet_conf_stat.stat.exists

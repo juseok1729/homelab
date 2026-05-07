@@ -1,0 +1,24 @@
+---
+# Cilium BGP Control Plane — VyOS와 eBGP 피어링
+# VyOS가 BGP neighbor로 등록되면 노드별 pod CIDR을 광고받음
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumBGPPeeringPolicy
+metadata:
+  name: homelab-bgp-peering
+spec:
+  nodeSelector:
+    matchLabels: {}
+  virtualRouters:
+  - localASN: {{ k8s_bgp_as }}
+    exportPodCIDR: true
+    serviceSelector:
+      matchExpressions:
+      - key: somekey
+        operator: NotIn
+        values:
+        - never-used
+    neighbors:
+    - peerAddress: "{{ vyos_vip }}/32"
+      peerASN: {{ vyos_bgp_as }}
+      holdTimeSeconds: 9
+      keepAliveTimeSeconds: 3

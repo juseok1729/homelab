@@ -190,3 +190,81 @@ variable "vrrp_advertise_interval" {
   type        = number
   default     = 1
 }
+
+# ─────────────────────────────────────────────────────────────
+# VyOS BGP (k8s Cilium peering — k8s 구축 후 true로 변경)
+# true로 변경 시 config_version도 함께 bump해야 재적용됨
+# ─────────────────────────────────────────────────────────────
+variable "vyos_bgp_enabled" {
+  description = "VyOS BGP 활성화 여부 (Cilium BGP peering)"
+  type        = bool
+  default     = false
+}
+
+# ─────────────────────────────────────────────────────────────
+# Ubuntu template
+# ─────────────────────────────────────────────────────────────
+variable "ubuntu_template_id" {
+  description = "Ubuntu 24.04 템플릿 VM ID (packer/ubuntu-template으로 빌드)"
+  type        = number
+  default     = 9001
+}
+
+# ─────────────────────────────────────────────────────────────
+# K8s cluster
+# ─────────────────────────────────────────────────────────────
+variable "k8s_cp_cores" {
+  type    = number
+  default = 2
+}
+
+variable "k8s_cp_memory" {
+  description = "Control plane memory in MB"
+  type        = number
+  default     = 4096
+}
+
+variable "k8s_cp_disk_size" {
+  description = "Control plane disk in GB"
+  type        = number
+  default     = 30
+}
+
+variable "k8s_vip" {
+  description = "kube-vip API server VIP (vlan20)"
+  type        = string
+  default     = "192.168.20.10"
+}
+
+variable "k8s_pod_cidr" {
+  type    = string
+  default = "10.244.0.0/16"
+}
+
+variable "k8s_service_cidr" {
+  type    = string
+  default = "10.96.0.0/12"
+}
+
+variable "k8s_ssh_public_key" {
+  description = "k8s 노드 cloud-init으로 주입할 SSH 공개키 (예: file(\"~/.ssh/id_ed25519.pub\"))"
+  type        = string
+}
+
+variable "k8s_ssh_private_key_path" {
+  description = "Ansible SSH 접속용 개인키 경로"
+  type        = string
+  default     = "~/.ssh/id_ed25519"
+}
+
+variable "k8s_kubeconfig_output_path" {
+  description = "kubeconfig를 저장할 로컬 경로"
+  type        = string
+  default     = "~/.kube/homelab-config"
+}
+
+variable "k8s_bootstrap_trigger" {
+  description = "재부트스트랩 트리거 (bump하면 Ansible 재실행)"
+  type        = string
+  default     = "v1"
+}

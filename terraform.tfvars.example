@@ -1,2 +1,24 @@
 # Copy to terraform.tfvars and fill in your values
 pve_api_token = "terraform@pve!provisioner=your-secret-here"
+
+# ─────────────────────────────────────────────────────────────
+# K8s cluster — k8s-cluster 모듈 적용 전 반드시 설정
+# ─────────────────────────────────────────────────────────────
+
+# SSH 공개키: k8s 노드 cloud-init에 주입 (ansible 접속용)
+# cat ~/.ssh/id_ed25519.pub
+k8s_ssh_public_key = "ssh-ed25519 AAAA... user@host"
+
+# SSH 개인키 경로 (Ansible 접속용, 기본값: ~/.ssh/id_ed25519)
+# k8s_ssh_private_key_path = "~/.ssh/id_ed25519"
+
+# kubeconfig 저장 경로 (기본값: ~/.kube/homelab-config)
+# k8s_kubeconfig_output_path = "~/.kube/homelab-config"
+
+# ─────────────────────────────────────────────────────────────
+# VyOS BGP — k8s 클러스터 + Cilium 구성 완료 후 활성화
+# true로 변경 시 vyos_rtr_1/2_config_version도 bump 필요
+# ─────────────────────────────────────────────────────────────
+# vyos_bgp_enabled = true
+# vyos_rtr_1_config_version = "v5"
+# vyos_rtr_2_config_version = "v3"

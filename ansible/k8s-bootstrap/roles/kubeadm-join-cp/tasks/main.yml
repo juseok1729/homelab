@@ -1,0 +1,54 @@
+---
+# ─────────────────────────────────────────────────────────────
+# kubeadm join: 추가 control plane 노드 (stacked etcd HA)
+# 첫 번째 CP의 hostvars에서 join command와 cert key를 가져옴
+# ─────────────────────────────────────────────────────────────
+
+- name: Check if already joined
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeconfig_stat
+
+- name: Join as control plane
+  command: >-
+    {{ hostvars[groups['control_plane'][0]]['worker_join_command'] }}
+    --control-plane
+    --certificate-key {{ hostvars[groups['control_plane'][0]]['cp_cert_key'] }}
+    --apiserver-advertise-address {{ ansible_default_ipv4.address }}
+  when: not kubeconfig_stat.stat.exists
+
+- name: Create kube-vip kubeconfig with local API server endpoint
+  shell: |
+    python3 << 'PYEOF'
+    import yaml
+    with open('/etc/kubernetes/admin.conf', 'r') as f:
+        config = yaml.safe_load(f)
+    for cluster in config.get('clusters', []):
+        cluster['cluster']['server'] = 'https://{{ ansible_default_ipv4.address }}:6443'
+    with open('/etc/kubernetes/kube-vip.conf', 'w') as f:
+        yaml.dump(config, f, default_flow_style=False)
+    PYEOF
+
+- name: Restart kube-vip pod to pick up new kubeconfig
+  command: >
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf delete pod
+    kube-vip-{{ inventory_hostname }} -n kube-system --ignore-not-found
+  failed_when: false
+  changed_when: false
+
+- name: Create .kube directory for ansible user
+  file:
+    path: /home/ansible/.kube
+    state: directory
+    owner: ansible
+    group: ansible
+    mode: "0750"
+
+- name: Copy admin.conf to ansible user
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/ansible/.kube/config
+    remote_src: true
+    owner: ansible
+    group: ansible
+    mode: "0600"

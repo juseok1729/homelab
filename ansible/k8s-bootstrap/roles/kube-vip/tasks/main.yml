@@ -1,0 +1,29 @@
+---
+# ─────────────────────────────────────────────────────────────
+# kube-vip: API server HA용 VIP를 ARP 모드로 제공하는 static pod
+# kubeadm init 전에 manifest를 배치해야 함
+# ─────────────────────────────────────────────────────────────
+
+- name: Create /etc/kubernetes/manifests directory
+  file:
+    path: /etc/kubernetes/manifests
+    state: directory
+    mode: "0755"
+
+- name: Detect primary network interface
+  set_fact:
+    kube_vip_interface: "{{ ansible_default_ipv4.interface }}"
+
+# kubeadm init 타임아웃(4분) 내에 VIP 확보를 위해 이미지를 사전 pull
+- name: Pre-pull kube-vip image (startup 지연 제거)
+  command: >
+    crictl --runtime-endpoint unix:///run/containerd/containerd.sock pull
+    ghcr.io/kube-vip/kube-vip:{{ kube_vip_version }}
+  changed_when: false
+
+- name: Deploy kube-vip static pod manifest
+  template:
+    src: kube-vip.yaml.j2
+    dest: /etc/kubernetes/manifests/kube-vip.yaml
+    mode: "0644"
+

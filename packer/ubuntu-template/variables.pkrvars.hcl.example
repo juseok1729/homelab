@@ -1,0 +1,30 @@
+# ─────────────────────────────────────────────────────────────
+# Proxmox 연결
+# ─────────────────────────────────────────────────────────────
+proxmox_token = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# ─────────────────────────────────────────────────────────────
+# ISO 체크섬 (선택)
+# 최신 ISO URL: https://releases.ubuntu.com/24.04.2/
+# SHA256:       https://releases.ubuntu.com/24.04.2/SHA256SUMS
+# ─────────────────────────────────────────────────────────────
+iso_checksum = "none"  # 운영환경에서는 "sha256:<hash>" 권장
+
+# ─────────────────────────────────────────────────────────────
+# 빌드 IP — 빌드 중 임시 사용, 완료 후 DHCP로 리셋
+# vlan1(192.168.219.x) 대역에서 충돌 없는 IP를 지정
+# VyOS 빌드 IP(.200)와 동시에 빌드하면 충돌 발생
+# ─────────────────────────────────────────────────────────────
+build_ip = "192.168.219.201"
+
+# ─────────────────────────────────────────────────────────────
+# ansible 계정 비밀번호
+# ssh_password      : Packer SSH 접속용 평문 (autoinstall 완료 후 SSH)
+# ssh_password_hash : autoinstall identity 필드용 SHA-512 해시
+#
+# 해시 생성 방법:
+#   openssl passwd -6 ubuntu
+#   python3 -c "import crypt; print(crypt.crypt('ubuntu', crypt.mksalt(crypt.METHOD_SHA512)))"
+# ─────────────────────────────────────────────────────────────
+ssh_password      = "ubuntu"
+ssh_password_hash = "$6$REPLACE_WITH_ACTUAL_HASH"

@@ -34,6 +34,10 @@ module "vyos_rtr_1" {
 
   default_user     = var.vyos_default_user
   default_password = var.vyos_default_password
+
+  bgp_enabled   = var.vyos_bgp_enabled
+  bgp_local_as  = 65000
+  bgp_neighbors = var.vyos_bgp_enabled ? local.k8s_bgp_neighbors : []
 }
 
 module "vyos_rtr_2" {
@@ -68,4 +72,39 @@ module "vyos_rtr_2" {
 
   default_user     = var.vyos_default_user
   default_password = var.vyos_default_password
+
+  bgp_enabled   = var.vyos_bgp_enabled
+  bgp_local_as  = 65000
+  bgp_neighbors = var.vyos_bgp_enabled ? local.k8s_bgp_neighbors : []
+}
+
+# ─────────────────────────────────────────────────────────────
+# K8s HA Cluster (3 CP + 3 Worker)
+# Ubuntu 템플릿(9001)에서 clone → kubeadm + kube-vip + Cilium BGP
+# ─────────────────────────────────────────────────────────────
+module "k8s_cluster" {
+  source = "./modules/k8s-cluster"
+
+  ubuntu_template_id = var.ubuntu_template_id
+  template_node      = var.pve_node_name
+  datastore          = local.datastore
+
+  cp_cores     = var.k8s_cp_cores
+  cp_memory    = var.k8s_cp_memory
+  cp_disk_size = var.k8s_cp_disk_size
+
+  gateway     = split("/", var.vrrp_vip_vlan20)[0]
+  dns_servers = [split("/", var.vrrp_vip_vlan20)[0], "8.8.8.8"]
+
+  k8s_vip      = var.k8s_vip
+  pod_cidr     = var.k8s_pod_cidr
+  service_cidr = var.k8s_service_cidr
+  k8s_bgp_as   = 65001
+  vyos_bgp_as  = 65000
+  vyos_vip     = split("/", var.vrrp_vip_vlan20)[0]
+
+  ssh_public_key         = var.k8s_ssh_public_key
+  ssh_private_key_path   = var.k8s_ssh_private_key_path
+  kubeconfig_output_path = var.k8s_kubeconfig_output_path
+  bootstrap_trigger      = var.k8s_bootstrap_trigger
 }

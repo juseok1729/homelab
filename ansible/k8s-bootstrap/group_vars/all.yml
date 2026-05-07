@@ -1,0 +1,40 @@
+---
+# ─────────────────────────────────────────────────────────────
+# Kubernetes cluster settings
+# Terraform의 k8s-bootstrap 모듈이 --extra-vars로 오버라이드 가능
+# ─────────────────────────────────────────────────────────────
+k8s_version: "1.32"
+
+# kube-vip: k8s API server VIP (vlan20)
+k8s_vip: "192.168.20.10"
+
+# Pod/Service CIDR
+pod_cidr: "10.244.0.0/16"
+service_cidr: "10.96.0.0/12"
+
+# ─────────────────────────────────────────────────────────────
+# BGP settings
+# ─────────────────────────────────────────────────────────────
+k8s_bgp_as: 65001
+vyos_bgp_as: 65000
+
+# VyOS VRRP VIP on vlan20 — Cilium BGP peer
+vyos_vip: "192.168.20.1"
+
+# ─────────────────────────────────────────────────────────────
+# Cilium
+# ─────────────────────────────────────────────────────────────
+cilium_version: "1.17.0"
+
+# ─────────────────────────────────────────────────────────────
+# kube-vip
+# ─────────────────────────────────────────────────────────────
+kube_vip_version: "v0.8.7"
+
+# ─────────────────────────────────────────────────────────────
+# SSH & connection
+# ─────────────────────────────────────────────────────────────
+ansible_user: ansible
+ansible_become: true
+ansible_become_method: sudo
+ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"

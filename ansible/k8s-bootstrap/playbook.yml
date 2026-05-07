@@ -1,0 +1,38 @@
+---
+# ─────────────────────────────────────────────────────────────
+# K8s HA Cluster Bootstrap
+# kubeadm + stacked etcd + kube-vip + Cilium BGP
+# ─────────────────────────────────────────────────────────────
+
+- name: All nodes — prerequisites
+  hosts: k8s_cluster
+  become: true
+  roles:
+    - common
+
+- name: First control plane — kube-vip static pod + kubeadm init
+  hosts: control_plane[0]
+  become: true
+  roles:
+    - kube-vip
+    - kubeadm-init
+
+- name: Additional control planes — kube-vip + join
+  hosts: control_plane[1:]
+  become: true
+  serial: 1
+  roles:
+    - kube-vip
+    - kubeadm-join-cp
+
+- name: Workers — join cluster
+  hosts: workers
+  become: true
+  roles:
+    - kubeadm-join-worker
+
+- name: First control plane — install Cilium CNI
+  hosts: control_plane[0]
+  become: false
+  roles:
+    - cilium

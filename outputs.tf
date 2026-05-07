@@ -87,3 +87,26 @@ output "vrrp_vip_vlan30" {
   description = "Virtual IP for vlan30 (storage)"
   value       = split("/", var.vrrp_vip_vlan30)[0]
 }
+
+# ─────────────────────────────────────────────────────────────
+# K8s cluster
+# ─────────────────────────────────────────────────────────────
+output "k8s_control_plane_ips" {
+  description = "Control plane 노드 IP 목록"
+  value       = module.k8s_cluster.control_plane_ips
+}
+
+output "k8s_worker_ips" {
+  description = "Worker 노드 IP 목록"
+  value       = module.k8s_cluster.worker_ips
+}
+
+output "k8s_vip" {
+  description = "K8s API server VIP (kube-vip)"
+  value       = module.k8s_cluster.k8s_vip
+}
+
+output "k8s_kubeconfig_path" {
+  description = "로컬에 저장된 kubeconfig 경로"
+  value       = module.k8s_cluster.kubeconfig_path
+}

@@ -1,0 +1,44 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  network:
+    network:
+      version: 2
+      ethernets:
+        ens18:
+          addresses:
+            - ${build_ip}/24
+          routes:
+            - to: 0.0.0.0/0
+              via: ${upstream_gateway}
+          nameservers:
+            addresses: [8.8.8.8, 1.1.1.1]
+  storage:
+    layout:
+      name: lvm
+    swap:
+      size: 0
+  identity:
+    hostname: ubuntu-template
+    username: ansible
+    password: "${ssh_password_hash}"
+  ssh:
+    install-server: true
+    allow-pw: true
+    authorized-keys: []
+  packages:
+    - qemu-guest-agent
+    - curl
+    - gnupg
+    - apt-transport-https
+    - ca-certificates
+    - software-properties-common
+    - nfs-common
+    - open-iscsi
+  late-commands:
+    - echo 'ansible ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/ansible
+    - chmod 440 /target/etc/sudoers.d/ansible
+    - systemctl enable qemu-guest-agent --root=/target

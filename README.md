@@ -38,6 +38,12 @@ Terraform + Packer + Ansible로 완전 자동화한 홈랩 인프라입니다.
 - VyOS가 Pod CIDR 라우트를 학습 → 외부에서 Pod IP 직접 접근 가능
 - **근거**: LoadBalancer 서비스 없이도 내부 네트워크에서 Pod에 직접 접근, L3 라우팅 학습
 
+### Hubble 네트워크 가시성
+- Cilium 내장 Hubble Agent + Relay + UI 활성화
+- 실시간 서비스 간 네트워크 플로우 시각화
+- DNS, HTTP, TCP, 드롭 패킷 메트릭 수집
+- **근거**: eBPF 기반 관찰이라 iptables 룰 없이 커널 레벨에서 패킷 추적 가능. 네트워크 정책 디버깅에 유용
+
 ### kube-vip Lease 기반 HA
 - k8s lease로 리더 선출 → 단일 노드만 VIP 보유
 - kube-vip.conf에 노드 자신의 IP 기재 → 재부팅 후 VIP 없이도 API 서버 연결 가능

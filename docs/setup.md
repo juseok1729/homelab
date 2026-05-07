@@ -299,6 +299,21 @@ ping -c 2 192.168.20.10
 kubectl exec -n kube-system ds/cilium -- cilium status
 ```
 
+### metrics-server 설치 (노드/파드 리소스 모니터링)
+
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+# Proxmox 환경에서 kubelet TLS 검증 우회 필요
+kubectl patch deployment metrics-server -n kube-system \
+  --type='json' \
+  -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+
+# 30초 후 노드 리소스 확인
+kubectl top nodes
+kubectl top pods -n kube-system --sort-by=memory
+```
+
 **기대 출력:**
 
 ```

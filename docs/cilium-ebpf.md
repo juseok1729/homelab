@@ -162,3 +162,87 @@ kubectl exec -n kube-system ds/cilium -- cilium bpf lb list
 # NAT 맵
 kubectl exec -n kube-system ds/cilium -- cilium bpf nat list
 ```
+
+---
+
+## Hubble — 네트워크 가시성
+
+Hubble은 Cilium 위에서 동작하는 네트워크 플로우 관찰 도구입니다.
+eBPF로 수집한 패킷 흐름을 시각화하고, 서비스 간 통신 현황을 실시간으로 확인할 수 있습니다.
+
+### 구성 요소
+
+| 컴포넌트 | 역할 |
+|---|---|
+| Hubble Agent | 각 노드의 Cilium에 내장 — 로컬 플로우 수집 |
+| Hubble Relay | 전체 노드 플로우 집계 (gRPC 허브) |
+| Hubble UI | 웹 대시보드 — 서비스맵, 플로우 시각화 |
+
+### 설치 (Helm)
+
+초기 Cilium 설치 후 별도로 활성화합니다.
+
+```bash
+helm upgrade cilium cilium/cilium \
+  --version 1.17.0 \
+  --namespace kube-system \
+  --reuse-values \
+  --set hubble.relay.enabled=true \
+  --set hubble.ui.enabled=true \
+  --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,http}"
+```
+
+**활성화된 메트릭:**
+
+| 메트릭 | 수집 내용 |
+|---|---|
+| `dns` | DNS 쿼리/응답 |
+| `drop` | 드롭된 패킷 + 이유 |
+| `tcp` | TCP 연결 상태 |
+| `flow` | 전체 네트워크 플로우 |
+| `port-distribution` | 포트별 트래픽 분포 |
+| `icmp` | ICMP 패킷 |
+| `http` | HTTP 요청/응답 (상태코드 등) |
+
+### 파드 확인
+
+```bash
+kubectl get pods -n kube-system | grep hubble
+# hubble-relay-xxx   1/1 Running
+# hubble-ui-xxx      2/2 Running
+```
+
+### UI 접근 (포트포워딩)
+
+```bash
+kubectl port-forward -n kube-system svc/hubble-ui 12000:80
+```
+
+브라우저에서 `http://localhost:12000` 접속.
+
+### CLI로 플로우 확인
+
+```bash
+# hubble CLI 설치 (macOS)
+brew install hubble
+
+# Relay에 연결
+hubble config set server localhost:4245
+kubectl port-forward -n kube-system svc/hubble-relay 4245:80 &
+
+# 실시간 플로우 모니터링
+hubble observe --follow
+
+# 특정 네임스페이스만
+hubble observe --namespace default --follow
+
+# 드롭된 패킷만
+hubble observe --verdict DROPPED --follow
+```
+
+### Hubble 상태 확인
+
+```bash
+kubectl exec -n kube-system ds/cilium -- cilium status | grep -i hubble
+# Hubble: Ok   Current/Max Flows: 4095/4095   Metrics: Enabled
+```

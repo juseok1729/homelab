@@ -17,7 +17,7 @@ packer {
 # ─────────────────────────────────────────────────────────────
 variable "proxmox_url" {
   type    = string
-  default = "https://192.168.219.11:8006/api2/json"
+  default = "https://172.30.1.111:8006/api2/json"
 }
 
 variable "proxmox_username" {
@@ -55,7 +55,7 @@ variable "iso_checksum" {
 variable "upstream_gateway" {
   description = "ISP 라우터 게이트웨이"
   type        = string
-  default     = "192.168.219.1"
+  default     = "172.30.1.254"
 }
 
 variable "ssh_password" {
@@ -83,7 +83,7 @@ variable "build_ip" {
     빌드 완료 후 shell provisioner가 DHCP로 리셋.
   EOT
   type        = string
-  default     = "192.168.219.201"
+  default     = "172.30.1.201"
 }
 
 # ─────────────────────────────────────────────────────────────

@@ -17,7 +17,7 @@ packer {
 # ─────────────────────────────────────────────────────────────
 variable "proxmox_url" {
   type    = string
-  default = "https://192.168.219.11:8006/api2/json"
+  default = "https://172.30.1.111:8006/api2/json"
 }
 
 # username 형식: user@realm!tokenid  (시크릿 UUID는 proxmox_token에 별도 입력)
@@ -56,7 +56,7 @@ variable "iso_checksum" {
 variable "upstream_gateway" {
   description = "ISP 라우터 게이트웨이"
   type        = string
-  default     = "192.168.219.1"
+  default     = "172.30.1.254"
 }
 
 variable "vyos_password" {
@@ -74,7 +74,7 @@ variable "build_ip" {
     - 빌드 중 해당 IP가 다른 호스트와 충돌하지 않아야 함.
   EOT
   type        = string
-  default     = "192.168.219.200"
+  default     = "172.30.1.200"
 }
 
 # ─────────────────────────────────────────────────────────────

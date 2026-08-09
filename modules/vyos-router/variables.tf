@@ -152,7 +152,7 @@ variable "vrrp_advertise_interval" {
 variable "mgmt_network" {
   description = "관리 네트워크 CIDR (vlan1). 이 대역으로 향하는 트래픽은 NAT 제외 처리"
   type        = string
-  default     = "192.168.219.0/24"
+  default     = "172.30.1.0/24"
 }
 
 variable "bgp_enabled" {

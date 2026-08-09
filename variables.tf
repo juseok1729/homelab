@@ -4,7 +4,7 @@
 variable "pve_endpoint" {
   description = "Proxmox VE API endpoint (entry node)"
   type        = string
-  default     = "https://192.168.219.11:8006/"
+  default     = "https://172.30.1.111:8006/"
 }
 
 variable "pve_api_token" {
@@ -92,7 +92,7 @@ variable "vyos_rtr_1_vlan30_ip" {
 variable "upstream_gateway" {
   description = "Upstream gateway for default route (ISP router)"
   type        = string
-  default     = "192.168.219.1"
+  default     = "172.30.1.254"
 }
 
 # ─────────────────────────────────────────────────────────────

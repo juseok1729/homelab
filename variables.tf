@@ -268,3 +268,42 @@ variable "k8s_bootstrap_trigger" {
   type        = string
   default     = "v1"
 }
+
+# ─────────────────────────────────────────────────────────────
+# Tailscale Gateway (LXC subnet router)
+# ─────────────────────────────────────────────────────────────
+variable "tailscale_gw_ct_id" {
+  description = "tailscale-gw 컨테이너 ID"
+  type        = number
+  default     = 310
+}
+
+variable "tailscale_gw_ip" {
+  description = "tailscale-gw 고정 IP (vlan10, CIDR 표기)"
+  type        = string
+  default     = "192.168.10.10/24"
+}
+
+variable "tailscale_auth_key" {
+  description = "Tailscale auth key (admin console에서 발급). 비어있으면 컨테이너만 생성하고 tailscale 프로비저닝은 건너뜀"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "tailscale_advertise_routes" {
+  description = "Tailscale subnet router가 광고할 경로"
+  type        = list(string)
+  default = [
+    "192.168.10.0/24", # mgmt vlan
+    "192.168.20.0/24", # k8s-svc vlan (K8s API 192.168.20.10 포함)
+    "192.168.30.0/24", # storage vlan
+    "172.30.1.0/24",   # 관리 네트워크 (Proxmox 노드)
+  ]
+}
+
+variable "tailscale_gw_config_version" {
+  description = "tailscale 프로비저닝 재실행 트리거 (bump하면 재실행)"
+  type        = string
+  default     = "v1"
+}

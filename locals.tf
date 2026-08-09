@@ -1,6 +1,10 @@
 locals {
   vm_tags_router = ["vyos", "router", "homelab"]
+  vm_tags_gw     = ["tailscale", "gateway", "homelab"]
   datastore      = "local-lvm"
+
+  # pve_endpoint URL에서 호스트 IP 추출 (pct exec 프로비저닝용 SSH 대상)
+  pve_node1_ip = regex("^https?://([^:/]+)", var.pve_endpoint)[0]
 
   # k8s 노드 6개 전체를 VyOS BGP neighbor로 등록
   # remote_as = 65001 (Cilium BGP Control Plane AS)

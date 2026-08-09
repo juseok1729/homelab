@@ -22,3 +22,10 @@ k8s_ssh_public_key = "ssh-ed25519 AAAA... user@host"
 # vyos_bgp_enabled = true
 # vyos_rtr_1_config_version = "v5"
 # vyos_rtr_2_config_version = "v3"
+
+# ─────────────────────────────────────────────────────────────
+# Tailscale Gateway — 외부 원격 접근용 subnet router
+# auth key 발급: https://login.tailscale.com/admin/settings/keys
+# 비워두면 컨테이너만 생성되고 tailscale 프로비저닝은 건너뜀
+# ─────────────────────────────────────────────────────────────
+# tailscale_auth_key = "tskey-auth-..."

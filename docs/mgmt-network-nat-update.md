@@ -87,6 +87,10 @@ ssh ubuntu@192.168.20.11 "ping -c 2 172.30.1.111"
 
 ## 주의사항
 
+- **tailscale-gw를 운영 중이라면**: NAT 제외 적용 후 vlan10 → 172.30.1.0/24 트래픽이
+  un-NAT 상태로 전달되므로, 각 PVE 노드에 리턴 경로(`ip route add 192.168.10.0/24 via
+  172.30.1.64`)를 추가해야 외부에서 Tailscale 경유 Proxmox 접근이 유지된다.
+  자세한 내용은 [tailscale-gw.md](tailscale-gw.md) 주의사항 참고.
 - **두 라우터를 동시에 올리지 말 것.** 한 대씩 적용해야 VRRP 페일오버로 무중단 유지.
 - 프로비저너는 vlan1의 DHCP IP(`bootstrap_ip`)로 SSH 접속한다. 라우터 IP가 바뀌었다면
   `terraform plan`으로 상태를 먼저 refresh할 것 (현재: rtr-1 `172.30.1.64`, rtr-2 `172.30.1.92`).

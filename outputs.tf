@@ -110,3 +110,19 @@ output "k8s_kubeconfig_path" {
   description = "로컬에 저장된 kubeconfig 경로"
   value       = module.k8s_cluster.kubeconfig_path
 }
+
+# ─────────────────────────────────────────────────────────────
+# Tailscale Gateway
+# ─────────────────────────────────────────────────────────────
+output "tailscale_gw_ct_id" {
+  value = module.tailscale_gw.ct_id
+}
+
+output "tailscale_gw_ip" {
+  description = "tailscale-gw 고정 IP (vlan10)"
+  value       = module.tailscale_gw.ip_address
+}
+
+output "tailscale_gw_ssh_command" {
+  value = module.tailscale_gw.ssh_command
+}
